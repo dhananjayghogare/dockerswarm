@@ -1,0 +1,73 @@
+version: '2'
+
+services:
+
+ node_ms:
+  depends_on:
+  - go_sch_ms
+  - go_stud_ms
+  image: pmann91/node_api
+  container_name: node_ms
+  ports:
+  - "9000:9000"
+  network_mode: "weave"
+  environment:
+   - reschedule=on-node-failure
+   - SCHOOL_URL=gosch.weave.local:9001
+   - STUDENT_URL=gostu.weave.local:9002
+  dns: 172.17.0.1
+  dns_search: weave.local
+
+ go_sch_ms:
+  depends_on:
+  - db_schools
+  image: pmann91/school_ms
+  container_name: go_sch_ms
+  hostname: gosch.weave.local
+  ports:
+  - "9001:9001"
+  network_mode: "weave"
+  environment:
+   - reschedule=on-node-failure
+   - SCHOOL_DB_URL=dbsch.weave.local
+  dns: 172.17.0.1
+  dns_search: weave.local
+
+ go_stud_ms:
+  depends_on:
+  - db_students
+  image: pmann91/student_ms
+  container_name: go_stu_ms
+  hostname: gostu.weave.local
+  ports:
+  - "9002:9002"
+  network_mode: "weave"
+  environment:
+   - reschedule=on-node-failure
+   - STUDENT_DB_URL=dbstu.weave.local
+  dns: 172.17.0.1
+  dns_search: weave.local
+
+ db_students:
+  image: mongo
+  container_name: db_students
+  hostname: dbstu.weave.local
+  ports:
+  - "27018:27017"
+  network_mode: "weave"
+  environment:
+   - reschedule=on-node-failure
+  dns: 172.17.0.1
+  dns_search: weave.local
+
+ db_schools:
+  image: mongo
+  container_name: db_schools
+  hostname: dbsch.weave.local
+  ports:
+  - "27019:27017"
+  network_mode: "weave"
+  environment:
+   - reschedule=on-node-failure
+  dns: 172.17.0.1
+  dns_search: weave.local

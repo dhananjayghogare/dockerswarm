@@ -1,0 +1,40 @@
+version: '2'
+
+services:
+
+ swarm_mgr:
+  depends_on: 
+  - consul_svr
+  image: swarm
+  container_name: manager1
+  hostname: mgr1
+  restart: always
+  ports:
+   - "3375:2375"
+  command: [manage, --replication, --advertise, "172.27.59.21:3375", "consul://172.27.59.21:8500/"]
+
+ consul_svr:
+  image: progrium/consul
+  container_name: consul1
+  hostname: consul1
+  restart: always
+  volumes:
+   - /consul:/data
+  ports:
+   - "172.27.59.21:8300:8300"
+   - "172.27.59.21:8301:8301"
+   - "172.27.59.21:8301:8301/udp"
+   - "172.27.59.21:8302:8302"
+   - "172.27.59.21:8302:8302/udp"
+   - "172.27.59.21:8400:8400"
+   - "172.27.59.21:8500:8500"
+  command: [-server, -advertise, "172.27.59.21", -bootstrap-expect, "3"]
+
+ registrator:
+  image: gliderlabs/registrator
+  container_name: registrator
+  hostname: registrator
+  restart: unless-stopped
+  volumes:
+   - /var/run/docker.sock:/tmp/docker.sock
+  command: ["consul://172.27.59.21:8500"]
